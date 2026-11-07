@@ -1,0 +1,103 @@
+tpl = tpl.replace(perf, """  <!-- Performance: timeline edge to edge, under the floating glass -->
+  <sc-if value="{{isPerf}}">
+    <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 150px;">
+      <sc-for list="{{bars}}" as="b">
+        <span style="position: absolute; left: {{b.x}}px; top: 112px; bottom: 0; width: 1px; background: {{t.grid}};"></span>
+        <span style="position: absolute; left: {{b.lx}}px; top: 118px; font-size: 11px; font-weight: 500; color: {{t.tertiary}};">{{b.label}}</span>
+      </sc-for>
+      <sc-for list="{{regions}}" as="r">
+        <div onClick="{{r.pick}}" title="{{r.title}}" style="position: absolute; left: {{r.x}}px; top: 140px; width: {{r.w}}px; height: 300px; border-radius: 12px; background: {{r.fill}}; cursor: {{r.cursor}};"></div>
+        <span style="position: absolute; left: {{r.lx}}px; top: 150px; font-size: 11px; font-weight: 600; color: {{r.color}}; white-space: nowrap; pointer-events: none;">{{r.label}}</span>
+        <sc-if value="{{r.wave}}">
+          <svg style="position: absolute; left: {{r.x}}px; top: 170px; pointer-events: none;" width="{{r.w}}" height="260" viewBox="0 0 {{r.w}} 260" aria-hidden="true"><path d="{{r.wave}}" fill="{{r.waveFill}}"></path></svg>
+        </sc-if>
+        <sc-if value="{{r.done}}">
+          <div style="position: absolute; left: {{r.bx}}px; top: 144px; display: flex; gap: 4px; z-index: 6;">
+            <button class="lg-pill" onClick="{{r.listen}}" title="Listen to this phrase here, before using it in your DAW" style="height: 24px; padding: 0 10px; border: 0; border-radius: 12px; background: {{r.listenBg}}; color: {{r.listenFg}}; font-size: 11px; font-weight: 600; cursor: pointer;">{{r.listenLabel}}</button>
+            <button data-drag="{{r.i}}" title="Drag the rendered audio onto an audio track in your DAW" class="lg-pill" style="height: 24px; padding: 0 10px; border: 0; border-radius: 12px; color: {{t.text}}; font-size: 11px; font-weight: 600; cursor: grab;">⠿ Audio</button>
+            <button data-dragmidi="{{r.i}}" title="Drag as MIDI (notes only)" class="lg-pill" style="height: 24px; padding: 0 10px; border: 0; border-radius: 12px; color: {{t.text}}; font-size: 11px; font-weight: 600; cursor: grab;">♪ MIDI</button>
+            <button data-dragmidi="{{r.i}}" data-dyn="1" title="Drag as MIDI with the dynamics curve (CC1 + CC11)" class="lg-pill" style="height: 24px; padding: 0 10px; border: 0; border-radius: 12px; color: {{t.text}}; font-size: 11px; font-weight: 600; cursor: grab;">♪ + Dyn</button>
+          </div>
+        </sc-if>
+        <span style="position: absolute; left: {{r.fadeL}}px; top: 172px; width: {{r.fadeW}}px; height: 262px; background: linear-gradient(to right, rgba(0,0,0,0.5), rgba(0,0,0,0)); pointer-events: none;"></span>
+        <span data-fade="{{r.i}}" title="Drag to set the fade in of this phrase ({{r.fadeText}})" style="position: absolute; left: {{r.fadeH}}px; top: 168px; width: 12px; height: 12px; margin-left: -6px; border-radius: 6px; background: #FFFFFF; box-shadow: 0 1px 4px rgba(0,0,0,0.5); cursor: ew-resize; z-index: 7;"></span>
+        <sc-if value="{{r.actions}}">
+          <div style="position: absolute; left: {{r.ax}}px; top: 410px; display: flex; gap: 4px; z-index: 6;">
+            <button class="lg-pill" onClick="{{r.doRender}}" title="{{r.renderTitle}}" style="height: 22px; min-width: 26px; padding: 0 7px; border: 0; border-radius: 11px; color: {{t.text}}; font-size: 11px; font-weight: 600; cursor: pointer;">↻</button>
+            <button class="lg-pill" onClick="{{r.doUnrender}}" title="Remove this render (keep the notes)" style="height: 22px; min-width: 26px; padding: 0 7px; border: 0; border-radius: 11px; color: {{t.text}}; font-size: 11px; font-weight: 600; cursor: pointer;">⊘</button>
+            <button class="lg-pill" onClick="{{doSplitTake}}" title="Split the take at the cursor" style="height: 22px; min-width: 26px; padding: 0 7px; border: 0; border-radius: 11px; color: {{t.text}}; font-size: 11px; font-weight: 600; cursor: pointer;">✂</button>
+            <button class="lg-pill" onClick="{{r.doDelete}}" title="Delete this take (notes and render)" style="height: 22px; min-width: 26px; padding: 0 7px; border: 0; border-radius: 11px; color: {{t.rec}}; font-size: 11px; font-weight: 600; cursor: pointer;">🗑</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{r.playing}}">
+          <span style="position: absolute; left: {{r.cursorX}}px; top: 140px; width: 1.5px; height: 300px; background: {{t.ok}}; pointer-events: none;"></span>
+        </sc-if>
+        <sc-if value="{{r.busy}}">
+          <span style="position: absolute; left: {{r.lx}}px; top: 428px; width: {{r.barW}}px; height: 3px; border-radius: 2px; background: {{t.track2}};"></span>
+          <span style="position: absolute; left: {{r.lx}}px; top: 428px; width: {{r.progW}}px; height: 3px; border-radius: 2px; background: {{t.warn}};"></span>
+        </sc-if>
+      </sc-for>
+      <sc-for list="{{rows}}" as="g"><span style="position: absolute; left: 268px; width: 790px; top: {{g.y}}px; height: {{g.h}}px; background: {{g.bg}}; pointer-events: none;"></span></sc-for>
+      <sc-for list="{{grid}}" as="g"><span style="position: absolute; left: {{g.x}}px; top: 140px; width: 1px; height: 300px; background: {{g.c}}; pointer-events: none;"></span></sc-for>
+      <sc-if value="{{hscroll}}">
+        <div data-hscroll="1" style="position: absolute; left: 268px; top: 444px; width: 790px; height: 8px; border-radius: 4px; background: {{t.fill}}; cursor: pointer;">
+          <span style="position: absolute; left: {{hscroll.x}}px; width: {{hscroll.w}}px; top: 0; height: 8px; border-radius: 4px; background: {{t.secondary}};"></span>
+        </div>
+      </sc-if>
+      <div data-ruler="1" title="Click to move the cursor" style="position: absolute; left: 268px; top: 110px; width: 790px; height: 26px; cursor: pointer;"></div>
+      <div data-roll="1" style="position: absolute; left: 268px; top: 140px; width: 790px; height: 300px;"></div>
+      <sc-for list="{{notes}}" as="n">
+        <span data-cap="{{n.i}}" class="{{n.cls}}" title="{{n.title}}" style="position: absolute; left: {{n.x}}px; top: {{n.y}}px; width: {{n.w}}px; height: 12px; border-radius: 6px; background: {{n.art}}; opacity: {{n.op}}; box-shadow: {{n.ring}}; cursor: {{n.cursor}}; overflow: hidden;"><span style="position: absolute; left: 4px; top: 0; font-size: 8px; font-weight: 700; line-height: 12px; color: {{n.fg}}; pointer-events: none; white-space: nowrap;">{{n.name}}</span></span>
+      </sc-for>
+      <sc-if value="{{hasNotes}}">
+        <span style="position: absolute; left: 280px; top: 630px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Articulations</span>
+        <sc-for list="{{palette}}" as="a">
+          <span data-artchip="{{a.i}}" title="Drag onto notes (or click with notes selected)" style="position: absolute; left: {{a.x}}px; top: 648px; width: 66px; height: 22px; border-radius: 11px; background: {{a.bg}}; color: {{a.fg}}; font-size: 11px; font-weight: 600; line-height: 22px; text-align: center; cursor: grab; user-select: none;">{{a.label}}</span>
+        </sc-for>
+        <span style="position: absolute; left: 280px; top: 680px; font-size: 10px; color: {{t.tertiary}};">Click a note to select (Shift adds) · drag to move · drag its right edge to resize · double-click empty space to add · Delete removes</span>
+      </sc-if>
+      <sc-if value="{{dragChip}}">
+        <span style="position: absolute; left: {{dragChip.x}}px; top: {{dragChip.y}}px; width: 66px; height: 22px; border-radius: 11px; background: {{dragChip.bg}}; color: {{dragChip.fg}}; font-size: 11px; font-weight: 600; line-height: 22px; text-align: center; pointer-events: none; opacity: 0.9; box-shadow: 0 6px 16px rgba(0,0,0,0.4);">{{dragChip.label}}</span>
+      </sc-if>
+      <sc-if value="{{showPlayhead}}">
+        <span style="position: absolute; left: {{playX}}px; top: 112px; height: 330px; width: 1.5px; background: {{t.rec}}; pointer-events: none; box-shadow: 0 0 6px {{t.rec}};"></span>
+      </sc-if>
+      <sc-if value="{{empty}}">
+        <div style="position: absolute; left: 268px; right: 222px; top: 240px; text-align: center; color: {{t.secondary}};">
+          <div style="font-size: 17px; font-weight: 600; color: {{t.text}}; margin-bottom: 6px;">Play something</div>
+          <div style="font-size: 13px; line-height: 1.5;">{{emptyHint}}</div>
+        </div>
+      </sc-if>
+      <span style="position: absolute; left: 280px; top: 456px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Dynamics</span>
+      <span style="position: absolute; left: 352px; top: 456px; font-size: 10px; color: {{t.tertiary}};">✎ draw on the curve to change it</span>
+      <button onClick="{{dynClear}}" class="lg-pill" title="Remove what you drew" style="position: absolute; left: 520px; top: 452px; height: 18px; padding: 0 8px; border: 0; border-radius: 9px; color: {{t.text}}; font-size: 10px; font-weight: 600; cursor: pointer;">Reset</button>
+      <div data-dynlane="1" style="position: absolute; left: 268px; top: 474px; width: 790px; height: 64px; cursor: crosshair; z-index: 5;"></div>
+      <svg style="position: absolute; left: 268px; top: 474px; pointer-events: none;" width="790" height="64" viewBox="0 0 790 64" aria-hidden="true">
+        <polyline points="{{dynDraft}}" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"></polyline>
+        <polygon points="{{dynArea}}" fill="{{t.accentSoft}}"></polygon>
+        <polyline points="{{dynLine}}" fill="none" stroke="{{t.accent}}" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      </svg>
+      <span style="position: absolute; left: 280px; top: 548px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Articulation</span>
+      <sc-for list="{{lane}}" as="c">
+        <span title="{{c.title}}" style="position: absolute; left: {{c.x}}px; top: 568px; width: {{c.w}}px; height: 22px; border-radius: 11px; background: {{c.bg}}; color: {{c.fg}}; font-size: 11px; font-weight: 600; line-height: 22px; padding-left: 9px; box-sizing: border-box; overflow: hidden; white-space: nowrap;">{{c.label}}</span>
+      </sc-for>
+      <sc-if value="{{noSel}}"><span style="position: absolute; left: 280px; top: 606px; font-size: 11px; color: {{t.tertiary}};">{{summary}}</span></sc-if>
+      <sc-if value="{{hasSel}}">
+        <div style="position: absolute; left: 270px; top: 598px; right: 222px; display: flex; align-items: center; gap: 3px; flex-wrap: nowrap; z-index: 8;">
+          <span style="font-size: 11px; font-weight: 600; color: {{t.secondary}}; margin-right: 4px; white-space: nowrap;">{{selText}}</span>
+          <sc-for list="{{tools}}" as="b">
+            <button class="lg-pill" onClick="{{b.pick}}" title="{{b.title}}" style="height: 22px; padding: 0 7px; border: 0; border-radius: 11px; color: {{t.text}}; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;">{{b.label}}</button>
+          </sc-for>
+          <span style="font-size: 11px; color: {{t.secondary}}; margin-left: 6px;">Vel</span>
+          <div data-velslider="1" style="position: relative; width: 70px; height: 18px; cursor: pointer;">
+            <span style="position: absolute; left: 0; right: 0; top: 6px; height: 6px; border-radius: 3px; background: {{t.track2}};"></span>
+            <span style="position: absolute; left: 0; top: 6px; width: {{velPct}}%; height: 6px; border-radius: 3px; background: {{t.accent}};"></span>
+          </div>
+          <span style="font-size: 11px; color: {{t.secondary}}; width: 22px;">{{velText}}</span>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+""")
+

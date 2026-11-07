@@ -1,0 +1,35 @@
+# Dependências baixadas (JUCE, ONNX Runtime, DirectML, VSCO 2 CE, CMake): ver tools/get_deps.ps1
+deps/
+
+# Modelos exportados (VIOLET em ONNX, ~1,7 GB): ver tools/export_onnx.py
+onnx/
+*.onnx
+*.npz
+
+# Build do plugin (CMake / Visual Studio)
+plugin/build/
+
+# Samples do preview já preparados (refeitos por tools/prepare_samples.py a partir do VSCO 2 CE)
+plugin/resources/samples/
+
+# Saídas de teste, áudio gerado, backups e downloads temporários
+teste/
+uit/
+backups/
+library_dl/
+tokensynth_test/*
+!tokensynth_test/README.md
+*.wav
+*.flac
+*.f32
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# Sistema / editores
+.vs/
+.vscode/
+Thumbs.db
+desktop.ini

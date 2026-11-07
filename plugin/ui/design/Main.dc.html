@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Violin Performer — plugin window</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+button{font-family:inherit}
+a{color:#007AFF}a:hover{color:#0062CC}
+/* Liquid Glass (iOS 26): em repouso o polegar é uma pílula branca opaca; ao tocar/arrastar ele
+   cresce com mola e vira uma lente clara: centro levemente fosco, bordas transparentes deixando a
+   cor do trilho vazar, aro especular branco e sombra que acompanha a elevação. */
+.lg-thumb{background:#FFFFFF;box-shadow:0 0 0 0.5px rgba(0,0,0,0.04),0 1px 1px rgba(0,0,0,0.06),0 3px 8px rgba(0,0,0,0.15);transition:transform .42s cubic-bezier(.34,1.56,.64,1),background .18s ease,box-shadow .18s ease;cursor:pointer}
+:hover>.lg-thumb,.lg-thumb:hover,:active>.lg-thumb{transform:scale(1.32);background:radial-gradient(110% 130% at 50% 42%,rgba(255,255,255,0.62) 0%,rgba(255,255,255,0.42) 42%,rgba(255,255,255,0.10) 74%,rgba(255,255,255,0.02) 100%);-webkit-backdrop-filter:blur(1.5px) saturate(1.9) brightness(1.05);backdrop-filter:blur(1.5px) saturate(1.9) brightness(1.05);box-shadow:inset 0 0 0 0.75px rgba(255,255,255,0.75),inset 0 1.5px 1px rgba(255,255,255,0.95),inset 0 -1px 1.5px rgba(255,255,255,0.4),inset 0 0 5px rgba(255,255,255,0.3),0 0 0 0.5px rgba(0,0,0,0.05),0 6px 16px rgba(0,0,0,0.16),0 1px 3px rgba(0,0,0,0.08)}
+/* botões dentro de uma cápsula de vidro não levam outro vidro: só ícone, realce ao passar o mouse */
+.lg-icon{background:transparent;transition:background .15s ease}
+.lg-icon:hover{background:rgba(127,127,127,0.14)}
+.lg-icon:active{background:rgba(127,127,127,0.24)}
+</style>
+</helmet>
+<div style="position: relative; width: 1280px; height: 940px; overflow: hidden; border-radius: 26px; font-family: Inter, -apple-system, system-ui, sans-serif; font-size: 13px; letter-spacing: -0.08px; color: {{t.text}}; background: {{t.content}};">
+
+  <!-- ===================== CONTENT LAYER (no glass) ===================== -->
+
+  <!-- Performance: timeline edge to edge, under the floating glass -->
+  <sc-if value="{{isPerf}}" hint-placeholder-val="{{ true }}">
+    <div style="position: absolute; left: 0; right: 0; top: 0; bottom: 150px;">
+      <sc-for list="{{bars}}" as="b" hint-placeholder-count="9">
+        <span style="position: absolute; left: {{b.x}}px; top: 112px; bottom: 0; width: 1px; background: {{t.grid}};"></span>
+        <span style="position: absolute; left: {{b.lx}}px; top: 118px; font-size: 11px; font-weight: 500; color: {{t.tertiary}};">{{b.label}}</span>
+      </sc-for>
+      <div style="position: absolute; left: 268px; top: 140px; width: 382px; height: 300px; border-radius: 12px; background: {{t.okFill}};"></div>
+      <span style="position: absolute; left: 280px; top: 150px; font-size: 11px; font-weight: 600; color: {{t.ok}};">Rendered</span>
+      <div style="position: absolute; left: 656px; top: 140px; width: 150px; height: 300px; border-radius: 12px; background: {{t.warnFill}};"></div>
+      <span style="position: absolute; left: 668px; top: 150px; font-size: 11px; font-weight: 600; color: {{t.warn}};">Rendering · 62%</span>
+      <span style="position: absolute; left: 668px; top: 428px; width: 126px; height: 3px; border-radius: 2px; background: {{t.track2}};"></span>
+      <span style="position: absolute; left: 668px; top: 428px; width: 78px; height: 3px; border-radius: 2px; background: {{t.warn}};"></span>
+      <span style="position: absolute; left: 822px; top: 150px; font-size: 11px; font-weight: 600; color: {{t.rec}};">Capturing</span>
+      <sc-for list="{{notes}}" as="n" hint-placeholder-count="23">
+        <span style="position: absolute; left: {{n.x}}px; top: {{n.y}}px; width: {{n.w}}px; height: 8px; border-radius: 4px; background: {{n.color}};"></span>
+      </sc-for>
+      <span style="position: absolute; left: 812px; top: 112px; bottom: 0; width: 1.5px; background: {{t.rec}};"></span>
+      <span style="position: absolute; left: 280px; top: 456px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Dynamics</span>
+      <svg style="position: absolute; left: 268px; top: 474px;" width="790" height="64" viewBox="0 0 790 64" aria-hidden="true">
+        <polygon points="{{dynArea}}" fill="{{t.accentSoft}}"></polygon>
+        <polyline points="{{dynLine}}" fill="none" stroke="{{t.accent}}" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"></polyline>
+      </svg>
+      <span style="position: absolute; left: 280px; top: 548px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Articulation</span>
+      <sc-for list="{{lane}}" as="c" hint-placeholder-count="6">
+        <span style="position: absolute; left: {{c.x}}px; top: 568px; width: {{c.w}}px; height: 22px; border-radius: 11px; background: {{c.bg}}; color: {{c.fg}}; font-size: 11px; font-weight: 600; line-height: 22px; padding-left: 9px; box-sizing: border-box; overflow: hidden; white-space: nowrap;">{{c.label}}</span>
+      </sc-for>
+      <span style="position: absolute; left: 280px; top: 606px; font-size: 11px; color: {{t.tertiary}};">3 phrases captured · 2 rendered · capture follows the playhead</span>
+    </div>
+  </sc-if>
+
+  <!-- Instrument: grouped list, System Settings style -->
+  <sc-if value="{{isInst}}" hint-placeholder-val="{{ false }}">
+    <figure style="position: absolute; left: 280px; width: 210px; top: 124px; bottom: 236px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+      <img src="./img/violin.webp" alt="Solo violin" width="246" height="720" style="width: auto; height: 440px; max-height: calc(100% - 60px); filter: drop-shadow(0 14px 22px rgba(0,0,0,0.22));">
+      <figcaption style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+        <span style="font-size: 15px; font-weight: 600; letter-spacing: -0.2px;">Solo Violin</span>
+        <span style="font-size: 11px; color: {{t.secondary}};">AI performance · 48 kHz</span>
+      </figcaption>
+    </figure>
+    <div style="position: absolute; left: 506px; right: 234px; top: 124px; bottom: 236px; display: flex; flex-direction: column; gap: 22px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <h2 style="margin: 0 0 2px 12px; font-size: 13px; font-weight: 600;">Performance</h2>
+        <div style="border-radius: 12px; background: {{t.card}}; box-shadow: {{t.cardShadow}};">
+          <sc-for list="{{instSliders}}" as="r" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; gap: 16px; height: 46px; padding: 0 14px; border-top: {{r.sep}};">
+              <span style="width: 170px; font-size: 13px;">{{r.label}}</span>
+              <div style="position: relative; flex-grow: 1; height: 20px;">
+                <span style="position: absolute; left: 0; right: 0; top: 7px; height: 6px; border-radius: 3px; background: {{t.track2}};"></span>
+                <span style="position: absolute; left: 0; top: 7px; width: {{r.pct}}%; height: 6px; border-radius: 3px; background: {{t.accent}};"></span>
+                <span class="lg-thumb" style="position: absolute; left: {{r.pct}}%; top: -2px; width: 38px; height: 24px; margin-left: -19px; border-radius: 12px;"></span>
+              </div>
+              <span style="width: 64px; text-align: right; font-size: 13px; color: {{t.secondary}}; font-variant-numeric: tabular-nums;">{{r.value}}</span>
+            </div>
+          </sc-for>
+        </div>
+        <span style="margin: 2px 12px 0; font-size: 11px; color: {{t.secondary}};">Auto: short notes play Spiccato, fast alternations play Trill, low-velocity legato notes slide (Portamento).</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Effects: grouped list -->
+  <sc-if value="{{isFx}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; left: 280px; right: 234px; top: 124px; bottom: 236px; display: flex; flex-direction: column; gap: 18px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <h2 style="margin: 0 0 2px 12px; font-size: 13px; font-weight: 600;">Mix Style</h2>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;">
+          <sc-for list="{{mixes}}" as="m" hint-placeholder-count="5">
+            <button onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px; height: 68px; padding: 12px; border: 0; border-radius: 12px; background: {{t.card}}; box-shadow: {{m.ring}}; color: {{t.text}}; text-align: left; cursor: pointer;">
+              <span style="font-size: 13px; font-weight: 600;">{{m.label}}</span>
+              <span style="font-size: 11px; color: {{t.secondary}};">{{m.hint}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; gap: 18px;">
+        <div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px;">
+          <h2 style="margin: 0 0 2px 12px; font-size: 13px; font-weight: 600;">Equalizer</h2>
+          <div style="border-radius: 12px; background: {{t.card}}; box-shadow: {{t.cardShadow}};">
+            <sc-for list="{{eqSliders}}" as="r" hint-placeholder-count="4">
+              <div style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 14px; border-top: {{r.sep}};">
+                <span style="width: 54px;">{{r.label}}</span>
+                <div style="position: relative; flex-grow: 1; height: 20px;">
+                  <span style="position: absolute; left: 0; right: 0; top: 7px; height: 6px; border-radius: 3px; background: {{t.track2}};"></span>
+                  <span style="position: absolute; left: 50%; top: 7px; width: {{r.fill}}%; margin-left: {{r.shift}}%; height: 6px; border-radius: 3px; background: {{t.accent}};"></span>
+                  <span class="lg-thumb" style="position: absolute; left: {{r.pct}}%; top: -2px; width: 38px; height: 24px; margin-left: -19px; border-radius: 12px;"></span>
+                </div>
+                <span style="width: 52px; text-align: right; color: {{t.secondary}}; font-variant-numeric: tabular-nums;">{{r.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px;">
+          <h2 style="margin: 0 0 2px 12px; font-size: 13px; font-weight: 600;">Reverb</h2>
+          <div style="border-radius: 12px; background: {{t.card}}; box-shadow: {{t.cardShadow}};">
+            <div style="display: flex; align-items: center; height: 44px; padding: 0 14px;">
+              <span style="flex-grow: 1;">Reverb</span>
+              <button onClick="{{toggleReverb}}" aria-pressed="{{revOn}}" aria-label="Reverb" style="position: relative; width: 56px; height: 26px; border: 0; border-radius: 13px; background: {{revTrack}}; cursor: pointer; overflow: visible;">
+                <span class="lg-thumb" style="position: absolute; top: 2px; left: {{revKnob}}px; width: 34px; height: 22px; border-radius: 11px;"></span>
+              </button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 14px; border-top: 0.5px solid {{t.sep}};">
+              <span style="flex-grow: 1;">Room</span>
+              <span style="display: flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 7px; background: {{t.fill}}; font-weight: 500;">{{roomName}}
+                <svg width="9" height="12" viewBox="0 0 9 12" aria-hidden="true"><path d="M1.5 4.5L4.5 1.5 7.5 4.5M1.5 7.5L4.5 10.5 7.5 7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </span>
+            </div>
+            <sc-for list="{{revSliders}}" as="r" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 14px; border-top: 0.5px solid {{t.sep}};">
+                <span style="width: 70px;">{{r.label}}</span>
+                <div style="position: relative; flex-grow: 1; height: 20px;">
+                  <span style="position: absolute; left: 0; right: 0; top: 7px; height: 6px; border-radius: 3px; background: {{t.track2}};"></span>
+                  <span style="position: absolute; left: 0; top: 7px; width: {{r.pct}}%; height: 6px; border-radius: 3px; background: {{t.accent}};"></span>
+                  <span class="lg-thumb" style="position: absolute; left: {{r.pct}}%; top: -2px; width: 38px; height: 24px; margin-left: -19px; border-radius: 12px;"></span>
+                </div>
+                <span style="width: 52px; text-align: right; color: {{t.secondary}}; font-variant-numeric: tabular-nums;">{{r.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Keyboard: content layer, bottom -->
+  <section aria-label="Keyboard" style="position: absolute; left: 0; right: 0; bottom: 0; height: 150px; display: flex; gap: 14px; padding: 16px 18px 18px; box-sizing: border-box; background: {{t.kbArea}}; border-top: 0.5px solid {{t.sep}};">
+    <div style="display: flex; gap: 10px;">
+      <sc-for list="{{wheels}}" as="w" hint-placeholder-count="2">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+          <div role="img" aria-label="{{w.label}}" style="position: relative; width: 22px; flex-grow: 1; border-radius: 11px; background: {{t.fill}};">
+            <span class="lg-thumb" style="position: absolute; left: 3px; right: 3px; top: {{w.pos}}px; height: 22px; border-radius: 8px;"></span>
+          </div>
+          <span style="font-size: 10px; font-weight: 600; color: {{t.secondary}};">{{w.label}}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="position: relative; flex-grow: 1; border-radius: 8px; overflow: hidden; background: {{t.keyBed}};">
+      <sc-for list="{{whites}}" as="k" hint-placeholder-count="52">
+        <span title="{{k.name}}" style="position: absolute; left: {{k.x}}px; top: 0; width: {{k.w}}px; height: 116px; border-radius: 0 0 5px 5px; background: {{k.bg}};"></span>
+      </sc-for>
+      <sc-for list="{{whiteLabels}}" as="k" hint-placeholder-count="8">
+        <span style="position: absolute; left: {{k.x}}px; top: 98px; width: {{k.w}}px; text-align: center; font-size: 9px; font-weight: 600; color: {{k.fg}};">{{k.name}}</span>
+      </sc-for>
+      <sc-for list="{{blacks}}" as="k" hint-placeholder-count="36">
+        <span style="position: absolute; left: {{k.x}}px; top: 0; width: {{k.w}}px; height: 70px; border-radius: 0 0 4px 4px; background: {{k.bg}};"></span>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- ===================== CONTROL LAYER (Liquid Glass) ===================== -->
+
+  <!-- toolbar: grouped glass capsules -->
+  <div style="position: absolute; left: 12px; right: 12px; top: 12px; height: 44px; display: flex; align-items: center; gap: 10px;">
+    <button style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px 0 8px; border: 0; border-radius: 22px; {{t.glass}} color: {{t.text}}; cursor: pointer;">
+      <span style="display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 15px; background: {{t.fill}};">
+        <svg width="14" height="20" viewBox="0 0 18 26" aria-hidden="true"><path d="M9 1v4M6 6c-3 0-4 3-3 5 1 1-2 2-2 5 0 4 3 8 8 8s8-4 8-8c0-3-3-4-2-5 1-2 0-5-3-5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path><path d="M9 8v14" stroke="currentColor" stroke-width="1.2"></path></svg>
+      </span>
+      <span style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15;">
+        <span style="font-weight: 600;">Violin</span>
+        <span style="font-size: 11px; color: {{t.secondary}};">Solo · Track 3</span>
+      </span>
+      <svg width="9" height="12" viewBox="0 0 9 12" aria-hidden="true"><path d="M1.5 4.5L4.5 1.5 7.5 4.5M1.5 7.5L4.5 10.5 7.5 7.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </button>
+    <span style="padding: 0 8px; font-size: 15px; font-weight: 700; letter-spacing: -0.3px;">[Plugin Name]</span>
+    <div style="flex-grow: 1;"></div>
+    <nav aria-label="Sections" style="display: flex; gap: 2px; padding: 4px; height: 44px; box-sizing: border-box; border-radius: 22px; {{t.glass}}">
+      <sc-for list="{{tabs}}" as="tab" hint-placeholder-count="3">
+        <button onClick="{{tab.pick}}" aria-pressed="{{tab.on}}" style="height: 36px; padding: 0 18px; border: 0; border-radius: 18px; background: {{tab.bg}}; box-shadow: {{tab.shadow}}; color: {{t.text}}; font-size: 13px; font-weight: {{tab.weight}}; cursor: pointer;">{{tab.label}}</button>
+      </sc-for>
+    </nav>
+    <div style="flex-grow: 1;"></div>
+    <span style="display: flex; align-items: center; gap: 6px; padding: 0 6px; font-size: 12px; color: {{t.secondary}};"><span style="width: 7px; height: 7px; border-radius: 4px; background: {{t.ok}};"></span>{{engineState}}</span>
+    <div style="display: flex; align-items: center; height: 44px; padding: 0 4px; border-radius: 22px; {{t.glass}}">
+      <button aria-label="Undo" style="width: 36px; height: 36px; border: 0; border-radius: 18px; background: transparent; color: {{t.text}}; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 4L2 7l3 3M2 7h8a4 4 0 010 8H7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+      <button aria-label="Redo" style="width: 36px; height: 36px; border: 0; border-radius: 18px; background: transparent; color: {{t.text}}; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 4l3 3-3 3M14 7H6a4 4 0 000 8h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+    </div>
+    <div style="display: flex; align-items: center; height: 44px; padding: 0 4px; border-radius: 22px; {{t.glass}}">
+      <button onClick="{{toggleTheme}}" aria-label="Appearance: light or dark" aria-pressed="{{dark}}" style="width: 36px; height: 36px; border: 0; border-radius: 18px; background: transparent; color: {{t.text}}; cursor: pointer;">
+        <sc-if value="{{dark}}" hint-placeholder-val="{{ false }}">
+          <svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 9.5A5.5 5.5 0 116.5 3 4.5 4.5 0 0013 9.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path></svg>
+        </sc-if>
+        <sc-if value="{{light}}" hint-placeholder-val="{{ true }}">
+          <svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"></circle><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path></svg>
+        </sc-if>
+      </button>
+      <button aria-label="Compact view" style="width: 36px; height: 36px; border: 0; border-radius: 18px; background: transparent; color: {{t.text}}; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v4H2M10 2v4h4M6 14v-4H2M10 14v-4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+      <button aria-label="Settings" style="width: 36px; height: 36px; border: 0; border-radius: 18px; background: transparent; color: {{t.text}}; cursor: pointer;"><svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.2" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M8 1.5l1.1 1.6 1.9-.4.6 1.8 1.8.6-.4 1.9 1.5 1-1.5 1 .4 1.9-1.8.6-.6 1.8-1.9-.4L8 14.5l-1.1-1.6-1.9.4-.6-1.8-1.8-.6.4-1.9L1.5 8l1.5-1-.4-1.9 1.8-.6.6-1.8 1.9.4z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path></svg></button>
+      <button aria-label="Help" style="width: 36px; height: 36px; border: 0; border-radius: 18px; background: transparent; color: {{t.text}}; cursor: pointer;"><svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M6.2 6.3a1.9 1.9 0 113 1.5c-.7.4-1.2.8-1.2 1.6M8 11.6v.1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+    </div>
+  </div>
+
+  <!-- articulation bar: glass capsule, colored pills inside (fills, not glass) -->
+  <div role="group" aria-label="Articulations" style="position: absolute; left: 268px; right: 222px; top: 64px; height: 44px; box-sizing: border-box; display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 22px; {{t.glass}}">
+    <sc-for list="{{artics}}" as="a" hint-placeholder-count="10">
+      <button onClick="{{a.pick}}" aria-pressed="{{a.on}}" title="Keyswitch {{a.key}}" style="flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 6px; border: 0; border-radius: 18px; background: {{a.bg}}; color: {{a.fg}}; font-size: 12px; font-weight: {{a.weight}}; white-space: nowrap; cursor: pointer;">
+        <span style="width: 8px; height: 8px; border-radius: 4px; background: {{a.dot}};"></span>{{a.label}}
+      </button>
+    </sc-for>
+  </div>
+
+  <!-- sidebar: floating glass slab -->
+  <aside aria-label="Modes" style="position: absolute; left: 10px; top: 64px; bottom: 160px; width: 248px; box-sizing: border-box; padding: 14px 10px; border-radius: 20px; display: flex; flex-direction: column; gap: 6px; {{t.glass}}">
+    <h2 style="margin: 0 8px 2px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Play Mode</h2>
+    <sc-for list="{{playModes}}" as="m" hint-placeholder-count="3">
+      <button onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: {{m.bg}}; color: {{t.text}}; font-size: 13px; font-weight: {{m.weight}}; text-align: left; cursor: pointer;">
+        <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true"><path d="{{m.icon}}" fill="none" stroke="{{m.iconColor}}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        {{m.label}}
+      </button>
+    </sc-for>
+    <h2 style="margin: 12px 8px 2px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Articulation Mode</h2>
+    <sc-for list="{{articModes}}" as="m" hint-placeholder-count="3">
+      <button onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; min-height: 44px; padding: 4px 8px 4px 36px; border: 0; border-radius: 8px; background: {{m.bg}}; color: {{t.text}}; text-align: left; cursor: pointer; position: relative;">
+        <sc-if value="{{m.on}}" hint-placeholder-val="{{ false }}">
+          <svg style="position: absolute; left: 10px; top: 14px;" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="{{t.accent}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </sc-if>
+        <span style="font-size: 13px; font-weight: {{m.weight}};">{{m.label}}</span>
+        <span style="font-size: 11px; color: {{t.secondary}};">{{m.hint}}</span>
+      </button>
+    </sc-for>
+    <h2 style="margin: 12px 8px 4px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Render Quality</h2>
+    <div style="display: flex; gap: 2px; padding: 2px; margin: 0 4px; border-radius: 9px; background: {{t.fill}};">
+      <sc-for list="{{qualities}}" as="q" hint-placeholder-count="4">
+        <button onClick="{{q.pick}}" aria-pressed="{{q.on}}" style="flex: 1 1 0; height: 26px; border: 0; border-radius: 7px; background: {{q.bg}}; box-shadow: {{q.shadow}}; color: {{t.text}}; font-size: 12px; font-weight: {{q.weight}}; cursor: pointer;">{{q.label}}</button>
+      </sc-for>
+    </div>
+    <span style="margin: 4px 8px 0; font-size: 11px; color: {{t.secondary}}; line-height: 1.4;">{{qualityHint}}</span>
+    <div style="flex-grow: 1;"></div>
+    <h2 style="margin: 0 8px 4px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Engine</h2>
+    <div style="margin: 0 8px; display: flex; flex-direction: column; gap: 6px;">
+      <span style="display: flex; justify-content: space-between; font-size: 12px;"><span>GPU memory</span><span style="color: {{t.secondary}}; font-variant-numeric: tabular-nums;">{{vram}}</span></span>
+      <span style="height: 5px; border-radius: 3px; background: {{t.track2}}; overflow: hidden;"><span style="display: block; height: 100%; width: {{vramPct}}%; border-radius: 3px; background: {{t.accent}};"></span></span>
+      <button onClick="{{toggleModel}}" style="margin-top: 4px; height: 30px; border: 0; border-radius: 15px; background: {{t.fill}}; color: {{t.text}}; font-size: 13px; font-weight: 500; cursor: pointer;">{{modelButton}}</button>
+    </div>
+  </aside>
+
+  <!-- inspector: output -->
+  <aside aria-label="Output" style="position: absolute; right: 10px; top: 64px; bottom: 160px; width: 202px; box-sizing: border-box; padding: 14px 12px; border-radius: 20px; display: flex; flex-direction: column; gap: 10px; {{t.glass}}">
+    <h2 style="margin: 0 4px; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Now Playing</h2>
+    <span style="display: flex; align-items: center; gap: 8px; margin: 0 4px; font-weight: 600;"><span style="width: 7px; height: 7px; border-radius: 4px; background: {{t.ok}};"></span>AI Render</span>
+    <span style="margin: -6px 4px 0 19px; font-size: 11px; color: {{t.secondary}};">Preview takes over where nothing is rendered yet</span>
+    <h2 style="margin: 10px 4px 0; font-size: 11px; font-weight: 600; color: {{t.secondary}};">Output</h2>
+    <div style="display: flex; gap: 16px; justify-content: center; align-items: flex-end; flex-grow: 1; padding: 6px 0;">
+      <div style="display: flex; gap: 4px; height: 100%; align-items: flex-end;">
+        <span style="position: relative; width: 6px; height: 100%; border-radius: 3px; background: {{t.track2}}; overflow: hidden;"><span style="position: absolute; bottom: 0; left: 0; right: 0; height: 64%; border-radius: 3px; background: {{t.meter}};"></span></span>
+        <span style="position: relative; width: 6px; height: 100%; border-radius: 3px; background: {{t.track2}}; overflow: hidden;"><span style="position: absolute; bottom: 0; left: 0; right: 0; height: 58%; border-radius: 3px; background: {{t.meter}};"></span></span>
+      </div>
+      <div role="img" aria-label="Output gain 0.0 dB" style="position: relative; width: 6px; height: 100%; border-radius: 3px; background: {{t.track2}};">
+        <span style="position: absolute; left: 0; right: 0; top: 34%; bottom: 0; border-radius: 3px; background: {{t.accent}};"></span>
+        <span class="lg-thumb" style="position: absolute; left: -9px; top: 30%; width: 24px; height: 38px; margin-top: -12px; border-radius: 12px;"></span>
+      </div>
+    </div>
+    <span style="text-align: center; font-weight: 600; font-variant-numeric: tabular-nums;">0.0 dB</span>
+    <button style="height: 30px; border: 0; border-radius: 15px; background: {{t.fill}}; color: {{t.text}}; font-size: 12px; font-weight: 500; cursor: pointer;">Control Room · 4</button>
+  </aside>
+
+  <!-- transport: floating glass capsule over the timeline -->
+  <div style="position: absolute; left: 50%; bottom: 172px; transform: translateX(-50%); margin-left: 23px; display: flex; align-items: center; gap: 6px; height: 52px; padding: 0 6px; border-radius: 26px; {{t.glass}}">
+    <button onClick="{{toggleCapture}}" aria-pressed="{{capOn}}" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 10px; border: 0; border-radius: 20px; background: {{capBg}}; color: {{capFg}}; font-size: 13px; font-weight: 600; cursor: pointer;">
+      <span style="width: 12px; height: 12px; border-radius: 6px; background: {{capDot}};"></span>Capture
+    </button>
+    <div style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; border-radius: 20px; background: {{t.fill}};">
+      <span style="font-size: 13px; font-weight: 500;">Autorender</span>
+      <button onClick="{{toggleAuto}}" aria-pressed="{{autoOn}}" aria-label="Autorender" style="position: relative; width: 56px; height: 26px; border: 0; border-radius: 13px; background: {{autoTrack}}; cursor: pointer; overflow: visible;">
+        <span class="lg-thumb" style="position: absolute; top: 2px; left: {{autoKnob}}px; width: 34px; height: 22px; border-radius: 11px;"></span>
+      </button>
+    </div>
+    <button style="height: 40px; padding: 0 22px; border: 0; border-radius: 20px; background: {{t.accent}}; color: #FFFFFF; font-size: 13px; font-weight: 600; cursor: pointer;">Render</button>
+    <button class="lg-icon" aria-label="Clear captured phrases" style="width: 40px; height: 40px; border: 0; border-radius: 20px; color: {{t.text}}; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 9h5.6l.7-9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+    <button class="lg-icon" aria-label="Export WAV" style="width: 40px; height: 40px; border: 0; border-radius: 20px; color: {{t.text}}; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M5 7l3 3 3-3M3 11.5V13h10v-1.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+    <span style="width: 0.5px; height: 24px; background: {{t.sep}}; margin: 0 4px;"></span>
+    <button style="height: 40px; padding: 0 14px; border: 0; border-radius: 20px; background: transparent; color: {{t.text}}; font-size: 13px; font-weight: 500; cursor: pointer;">Fit</button>
+    <label for="zoom" style="font-size: 12px; color: {{t.secondary}};">Zoom</label>
+    <span style="position: relative; display: block; width: 110px; height: 24px; margin: 0 12px 0 4px;">
+      <span style="position: absolute; left: 0; right: 0; top: 9px; height: 6px; border-radius: 3px; background: {{t.track2}};"></span>
+      <span style="position: absolute; left: 0; top: 9px; width: 40%; height: 6px; border-radius: 3px; background: {{t.accent}};"></span>
+      <span class="lg-thumb" style="position: absolute; left: 40%; top: 0; width: 38px; height: 24px; margin-left: -19px; border-radius: 12px;"></span>
+      <input id="zoom" type="range" min="1" max="8" value="3" style="position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer;">
+    </span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"startDark":{"editor":"boolean","default":false},"$preview":{"width":1280,"height":940}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.state || {};
+    const dark = s.dark ?? (this.props.startDark ?? false);
+    const set = (k, v) => () => this.setState({ [k]: v });
+
+    // Liquid Glass: vidro só na camada de controles; o conteúdo (timeline, ajustes, teclado) é sólido
+    const t = dark ? {
+      content: '#1E1E1F', card: '#2A2A2C', cardShadow: '0 0 0 0.5px rgba(255,255,255,0.06)', kbArea: '#18181A',
+      text: '#F5F5F7', secondary: 'rgba(235,235,245,0.6)', tertiary: 'rgba(235,235,245,0.3)',
+      sep: 'rgba(255,255,255,0.10)', grid: 'rgba(255,255,255,0.05)', fill: 'rgba(255,255,255,0.10)', fill2: 'rgba(255,255,255,0.16)',
+      track2: 'rgba(255,255,255,0.14)', segOn: 'rgba(255,255,255,0.24)', segShadow: '0 1px 2px rgba(0,0,0,0.35)',
+      accent: '#0A84FF', accentSoft: 'rgba(10,132,255,0.16)', ok: '#30D158', okFill: 'rgba(48,209,88,0.08)',
+      warn: '#FF9F0A', warnFill: 'rgba(255,159,10,0.08)', rec: '#FF453A', green: '#30D158', off: 'rgba(120,120,128,0.32)',
+      noteDone: '#0A84FF', noteNew: '#64D2FF', noteFuture: 'rgba(10,132,255,0.35)', meter: 'linear-gradient(#FF453A, #FFD60A 22%, #30D158 50%)',
+      wheelThumb: '#8E8E93', keyBed: '#000000', keyWhite: '#E5E5EA', keyDim: '#48484A', keyBlack: '#1C1C1E', keyBlackDim: '#3A3A3C',
+      keyPress: '#0A84FF', labelOn: '#8E8E93',
+      glass: 'background: rgba(40,40,44,0.58); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.22), inset 0 0 0 0.5px rgba(255,255,255,0.08), 0 8px 28px rgba(0,0,0,0.45);'
+    } : {
+      content: '#F7F7F9', card: '#FFFFFF', cardShadow: '0 0 0 0.5px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04)', kbArea: '#EEEEF1',
+      text: '#1D1D1F', secondary: 'rgba(60,60,67,0.6)', tertiary: 'rgba(60,60,67,0.3)',
+      sep: 'rgba(60,60,67,0.18)', grid: 'rgba(0,0,0,0.045)', fill: 'rgba(120,120,128,0.12)', fill2: 'rgba(120,120,128,0.2)',
+      track2: 'rgba(120,120,128,0.2)', segOn: '#FFFFFF', segShadow: '0 1px 2px rgba(0,0,0,0.12), 0 0 0 0.5px rgba(0,0,0,0.04)',
+      accent: '#007AFF', accentSoft: 'rgba(0,122,255,0.10)', ok: '#28A745', okFill: 'rgba(52,199,89,0.08)',
+      warn: '#C26B00', warnFill: 'rgba(255,149,0,0.09)', rec: '#E5352B', green: '#34C759', off: 'rgba(120,120,128,0.16)',
+      noteDone: '#007AFF', noteNew: '#32ADE6', noteFuture: 'rgba(0,122,255,0.3)', meter: 'linear-gradient(#FF3B30, #FFCC00 22%, #34C759 50%)',
+      wheelThumb: '#FFFFFF', keyBed: '#C7C7CC', keyWhite: '#FFFFFF', keyDim: '#E9E9EE', keyBlack: '#1D1D1F', keyBlackDim: '#8E8E93',
+      keyPress: '#007AFF', labelOn: '#8E8E93',
+      glass: 'background: rgba(255,255,255,0.62); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.95), inset 0 0 0 0.5px rgba(255,255,255,0.6), 0 0 0 0.5px rgba(0,0,0,0.06), 0 6px 24px rgba(0,0,0,0.10);'
+    };
+    const row = (on) => ({ bg: on ? t.fill2 : 'transparent', weight: on ? 600 : 400 });
+    const seg = (on) => ({ bg: on ? t.segOn : 'transparent', shadow: on ? t.segShadow : 'none', weight: on ? 600 : 500 });
+
+    const tab = s.tab ?? 'perf';
+    const tabs = [['perf', 'Performance'], ['inst', 'Instrument'], ['fx', 'Effects']].map(([id, label]) => (
+      { label, on: tab === id, pick: set('tab', id), ...seg(tab === id) }));
+
+    const play = s.play ?? 'legato';
+    const playModes = [
+      ['legato', 'Legato', 'M1 10c3-6 5-6 8 0s5 6 8 0'],
+      ['poly', 'Poly Legato', 'M1 5c3-4 5-4 8 0s5 4 8 0M1 11c3-4 5-4 8 0s5 4 8 0'],
+      ['long', 'Long Normal', 'M2 7h4M8 7h4M14 7h3']
+    ].map(([id, label, icon]) => ({ label, icon, on: play === id, pick: set('play', id), ...row(play === id),
+      iconColor: play === id ? t.accent : t.secondary }));
+
+    const am = s.am ?? 'auto';
+    const articModes = [
+      ['auto', 'Auto', 'Articulation and dynamics detected'],
+      ['autodyn', 'Auto + Dynamics', 'You ride dynamics on the mod wheel'],
+      ['manual', 'Manual', 'Keyswitches only']
+    ].map(([id, label, hint]) => ({ label, hint, on: am === id, pick: set('am', id), ...row(am === id) }));
+
+    const q = s.q ?? 'high';
+    const qInfo = { low: ['Low', 'Fastest drafts · ~0.8 s per 10 s'], medium: ['Med', 'Quick and clean · ~1.3 s per 10 s'],
+      high: ['High', 'Default · ~2.6 s per 10 s'], extreme: ['Extreme', 'Best of 8 takes · ~20 s per 10 s'] };
+    const qualities = Object.keys(qInfo).map((id) => ({ label: qInfo[id][0], on: q === id, pick: set('q', id), ...seg(q === id) }));
+
+    // articulações: uma cor de sistema cada (variantes clara/escura)
+    const AC = dark
+      ? { auto: '#98989D', sustain: '#0A84FF', legato: '#64D2FF', spiccato: '#FF9F0A', staccato: '#FFD60A',
+          pizzicato: '#30D158', tremolo: '#BF5AF2', trill: '#FF375F', portamento: '#FF453A', harmonic: '#5E5CE6' }
+      : { auto: '#8E8E93', sustain: '#007AFF', legato: '#32ADE6', spiccato: '#FF9500', staccato: '#FFCC00',
+          pizzicato: '#34C759', tremolo: '#AF52DE', trill: '#FF2D55', portamento: '#FF3B30', harmonic: '#5856D6' };
+    const TXT = (id) => (id === 'harmonic' ? '#FFFFFF' : '#000000');
+    const art = s.art ?? 'auto';
+    const artics = [
+      ['auto', 'Auto', 'C1'], ['sustain', 'Sustain', 'D1'], ['legato', 'Legato', 'E1'], ['spiccato', 'Spiccato', 'F1'],
+      ['staccato', 'Staccato', 'G1'], ['pizzicato', 'Pizz', 'A1'], ['tremolo', 'Tremolo', 'B1'], ['trill', 'Trill', 'C2'],
+      ['portamento', 'Porta', 'D2'], ['harmonic', 'Harmonic', 'E2']
+    ].map(([id, label, key]) => {
+      const on = art === id;
+      return { label, key, on, pick: set('art', id), bg: on ? AC[id] : 'transparent', fg: on ? TXT(id) : t.text,
+        dot: on ? TXT(id) : AC[id], weight: on ? 600 : 500 };
+    });
+
+    const bars = [];
+    for (let i = 0; i < 9; i++) bars.push({ x: 268 + i * 99, lx: 274 + i * 99, label: String(i + 1) });
+    const mel = [[0, 76, 2], [2, 81, 6], [8, 83, 2], [10, 84, 4], [14, 83, 2], [16, 81, 2], [18, 80, 4], [22, 81, 2],
+      [24, 83, 2], [26, 76, 8], [34, 77, 1], [35, 76, 1], [36, 74, 1], [37, 72, 1], [38, 71, 2], [40, 72, 2], [42, 74, 4],
+      [46, 76, 2], [48, 69, 10], [60, 72, 2], [62, 76, 2], [64, 81, 2], [66, 84, 4]];
+    const notes = mel.map(([b, p, l]) => {
+      const x = 280 + b * 12.4;
+      return { x, y: 410 - (p - 66) * 12, w: Math.max(l * 12.4 - 3, 7),
+        color: x < 650 ? t.noteDone : (x < 806 ? t.noteNew : t.noteFuture) };
+    });
+    const dyn = [52, 48, 40, 30, 24, 20, 22, 30, 38, 44, 50, 56, 54, 46, 36, 26, 18, 14, 16, 22, 30, 40, 48, 56];
+    const pts = dyn.map((y, i) => (12 + i * 33) + ',' + y);
+    const dynLine = pts.join(' ');
+    const dynArea = '12,64 ' + dynLine + ' ' + (12 + (dyn.length - 1) * 33) + ',64';
+    const lane = [[280, 24, 'Sus', 'sustain'], [306, 272, 'Legato', 'legato'], [582, 70, 'Trill', 'trill'],
+      [656, 104, 'Spiccato', 'spiccato'], [764, 118, 'Legato', 'legato'], [886, 150, 'Portamento', 'portamento']]
+      .map(([x, w, label, id]) => ({ x, w, label, bg: AC[id], fg: TXT(id) }));
+
+    const slider = (label, pct, value, i) => ({ label, pct, value, sep: i ? '0.5px solid ' + t.sep : 'none' });
+    const instSliders = [
+      ['Dynamics intensity', 70, '70%'], ['Level', 60, '0.0 dB'], ['Legato gap', 30, '10 ms'],
+      ['Portamento velocity', 35, '< 45'], ['Humanize', 50, '50%'], ['Takes per phrase', 25, 'Auto']
+    ].map((r, i) => slider(r[0], r[1], r[2], i));
+    const eqSliders = [['Low', 58, '+1.0 dB'], ['Mid', 46, '−0.5 dB'], ['High', 62, '+1.5 dB'], ['Air', 70, '+2.5 dB']]
+      .map(([label, pct, value], i) => ({ label, pct, value, sep: i ? '0.5px solid ' + t.sep : 'none',
+        fill: Math.abs(pct - 50), shift: pct < 50 ? -(50 - pct) : 0 }));
+    const revSliders = [['Mix', 30, '30%'], ['Decay', 50, '2.4 s'], ['Pre-delay', 40, '22 ms']].map((r, i) => slider(r[0], r[1], r[2], i));
+    const revOn = s.rev ?? false;
+
+    const mix = s.mix ?? 'dry';
+    const mixInfo = { dry: ['Dry', 'Your own reverb'], lyrical: ['Lyrical', 'Chamber · close'], romantic: ['Romantic', 'Concert hall · warm'],
+      baroque: ['Baroque', 'Church · distant'], cinematic: ['Cinematic', 'Scoring stage · wide'] };
+    const mixes = Object.keys(mixInfo).map((id) => ({ label: mixInfo[id][0], hint: mixInfo[id][1], on: mix === id, pick: set('mix', id),
+      ring: mix === id ? '0 0 0 2px ' + t.accent : t.cardShadow }));
+
+    const KS = { 36: 'auto', 38: 'sustain', 40: 'legato', 41: 'spiccato', 43: 'staccato', 45: 'pizzicato',
+      47: 'tremolo', 48: 'trill', 50: 'portamento', 52: 'harmonic' };
+    const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const WK = 1172 / 52, pressed = { 69: true, 72: true };
+    const whites = [], blacks = [], whiteLabels = [];
+    let wi = 0;
+    for (let n = 21; n <= 108; n++) {
+      const isBlack = [1, 3, 6, 8, 10].includes(n % 12);
+      const name = NAMES[n % 12] + (Math.floor(n / 12) - 2);  // C1 = 36 (Cubase/VSL)
+      const inRange = n >= 55 && n <= 105;
+      if (!isBlack) {
+        const ks = KS[n];
+        whites.push({ x: wi * WK, w: WK - 1, bg: ks ? AC[ks] : pressed[n] ? t.keyPress : inRange ? t.keyWhite : t.keyDim,
+          name: ks ? name + ' · ' + ks : name });
+        if (n % 12 === 0) whiteLabels.push({ x: wi * WK, w: WK - 1, name, fg: ks ? TXT(ks) : inRange ? t.labelOn : t.secondary });
+        wi++;
+      } else {
+        blacks.push({ x: wi * WK - WK * 0.31, w: WK * 0.62, bg: inRange ? t.keyBlack : t.keyBlackDim });
+      }
+    }
+    const wheels = [{ label: 'Pitch', pos: 40 }, { label: 'Mod', pos: 22 }];
+
+    const loaded = s.loaded ?? true;
+    const capOn = s.cap ?? true, autoOn = s.auto ?? true;
+    return {
+      t, dark, light: !dark, toggleTheme: () => this.setState({ dark: !dark }),
+      tabs, isPerf: tab === 'perf', isInst: tab === 'inst', isFx: tab === 'fx',
+      playModes, articModes, qualities, qualityHint: qInfo[q][1], artics,
+      bars, notes, dynLine, dynArea, lane, instSliders, eqSliders, revSliders, mixes,
+      revOn, toggleReverb: () => this.setState({ rev: !revOn }), revTrack: revOn ? t.green : t.off, revKnob: revOn ? 20 : 2,
+      roomName: 'Concert Hall', whites, blacks, whiteLabels, wheels,
+      capOn, toggleCapture: () => this.setState({ cap: !capOn }), capBg: capOn ? 'rgba(255,59,48,0.14)' : t.fill,
+      capFg: capOn ? t.rec : t.text, capDot: capOn ? t.rec : t.secondary,
+      autoOn, toggleAuto: () => this.setState({ auto: !autoOn }), autoTrack: autoOn ? t.green : t.off, autoKnob: autoOn ? 20 : 2,
+      engineState: loaded ? 'Engine ready' : 'Model unloaded', vram: loaded ? '2.6 of 8 GB' : '0 of 8 GB', vramPct: loaded ? 33 : 0,
+      modelButton: loaded ? 'Unload Model' : 'Load Model', toggleModel: () => this.setState({ loaded: !loaded })
+    };
+  }
+}
+</script>
+</body>
+</html>
