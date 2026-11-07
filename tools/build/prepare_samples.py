@@ -1,6 +1,6 @@
 """Prepara os samples do preview (VSCO 2 CE Solo Violin, CC0): mono, cauda cortada, FLAC 16 bits.
 
-Uso: deps\\ortenv\\Scripts\\python.exe tools\\prepare_samples.py <VSCO Solo Violin> <saída>
+Uso: deps\\ortenv\\Scripts\\python.exe tools\\build\\prepare_samples.py <VSCO Solo Violin> <saída>
 A nota vem do nome do arquivo, com a convenção de oitava de cada pasta medida (YIN, mediana):
 o VSCO mistura convenções (o Arco Vib chama de G3 o MIDI 55, o spic e o trem chamam de A2 o
 MIDI 57). Medir arquivo a arquivo falha nos pizzicatos curtos.

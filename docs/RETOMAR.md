@@ -7,7 +7,7 @@ Build: python plugin\ui\build_ui.py; cmake --build plugin\build --config Release
 copiar o binário Contents\x86_64-win\Violino.vst3 (Ableton fechado). Conferir JS: node --check no <script> do index.html.
 Standalone: tools\restart_standalone.ps1 (nunca matar à força: WebView2 órfão = tela branca).
 Memória: sandbox virtualiza %LOCALAPPDATA% (Ableton não enxerga) -> conteúdo vai no pacote do VST3.
-Notas antigas: RETOMAR_old.md.
+Notas antigas: docs/RETOMAR_old.md. Teste da UI no navegador: tools/ui-test/mk_harness.py.
 
 ## Feito até v0.8.2
 EQ Pro-Q, Saturator, Echo, Reverb (estilo uJAM), Compressor, Chorus, Stereo, FX ON/OFF global; dinâmica

@@ -1,6 +1,6 @@
 ﻿"""Mede o núcleo do VIOLET em ONNX Runtime (DirectML) com as modulações fixas na GPU (IOBinding).
 
-Uso: deps\\ortenv\\Scripts\\python.exe tools\\bench_onnx.py <pasta_onnx> <core.onnx> [nível de otimização]
+Uso: deps\\ortenv\\Scripts\\python.exe tools\\analysis\\bench_onnx.py <pasta_onnx> <core.onnx> [nível de otimização]
 """
 import os
 import sys

@@ -33,16 +33,20 @@ violin performance with the [VIOLET](https://github.com/User-tian/VIOLET) neural
 | `plugin/source/` | JUCE processor, editor, engine service (render queue), preview sampler |
 | `plugin/engine/` | Articulator, VIOLET renderer (ONNX), performer (takes/quality), mix FX |
 | `plugin/ui/` | Web UI (WebView2): `build_ui.py` generates `index.html` from the design + `app.js`, `edit.js`, `fx.js`, `score.js` |
-| `tools/` | ONNX export, dependency download, sample preparation, library download, analysis and patch scripts |
 | `library/` | Classical MIDI library (Mutopia Project) + `index.json` |
-| `RETOMAR.md` | Working notes / backlog (Portuguese) |
+| `tools/build/` | Dependencies, ONNX export, preview samples, library download, install helpers, publishing |
+| `tools/analysis/` | Audio quality / loudness analysis of renders, ONNX benchmarks, articulation comparisons |
+| `tools/ui-test/` | Browser test harness for the UI with a mock plugin state |
+| `prototype/` | The original Python command-line pipeline (MIDI → VIOLET in WSL → WAV) the plugin grew from |
+| `docs/` | Plugin spec and working notes / backlog (Portuguese) |
+| `tokensynth_test/` | Separate evaluation of the TokenSynth model |
 
 ## Building (Windows)
 
-1. Dependencies: `powershell tools/get_deps.ps1` (JUCE, ONNX Runtime DirectML, CMake, VSCO 2 CE samples).
-2. Models: export VIOLET to ONNX with `tools/export_onnx.py` (needs the VIOLET checkpoints, see their repo),
+1. Dependencies: `powershell tools/build/get_deps.ps1` (JUCE, ONNX Runtime DirectML, CMake, VSCO 2 CE samples).
+2. Models: export VIOLET to ONNX with `tools/build/export_onnx.py` (needs the VIOLET checkpoints, see their repo),
    output in `onnx/`.
-3. Preview samples: `python tools/prepare_samples.py`.
+3. Preview samples: `python tools/build/prepare_samples.py`.
 4. UI: `python plugin/ui/build_ui.py`.
 5. Build: `cmake --build plugin/build --config Release --target Violino_Standalone Violino_VST3`
    (with `deps/cmake/bin` on `PATH`).

@@ -1,8 +1,8 @@
 #!/bin/bash
-# Exporta o VIOLET para ONNX (chamado do Windows: wsl -d Ubuntu --exec bash /mnt/c/Users/TheoH/violino/tools/run_export.sh)
+# Exporta o VIOLET para ONNX (chamado do Windows: wsl -d Ubuntu --exec bash /mnt/c/Users/TheoH/violino/tools/build/run_export.sh)
 set -e
 cd ~/VIOLET
-cp /mnt/c/Users/TheoH/violino/tools/export_onnx.py src/export_onnx.py
+cp /mnt/c/Users/TheoH/violino/tools/build/export_onnx.py src/export_onnx.py
 export PROJECT_ROOT=~/VIOLET
 export REF_MIDI=/mnt/c/Users/TheoH/violino/teste/melody_auto.mid
 export OUT_DIR=/mnt/c/Users/TheoH/violino/onnx

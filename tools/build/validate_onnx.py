@@ -1,6 +1,6 @@
 ﻿"""Confere o VIOLET em ONNX (DirectML no Windows) contra a janela de referência do PyTorch.
 
-Uso: deps\\ortenv\\Scripts\\python.exe tools\\validate_onnx.py <pasta_onnx> [violet_core.onnx|violet_core_fp16.onnx]
+Uso: deps\\ortenv\\Scripts\\python.exe tools\\build\\validate_onnx.py <pasta_onnx> [violet_core.onnx|violet_core_fp16.onnx]
 Roda o condicionamento uma vez, repete o amostrador Heun do VIOLET com UMA chamada do núcleo por
 avaliação (técnica ligada, CC desligado = w_tech 1, w_cc 0), decodifica e compara latentes e áudio;
 mede o tempo de cada etapa.

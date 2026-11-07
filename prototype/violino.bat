@@ -6,4 +6,4 @@ if "%~2"=="" (
   exit /b 1
 )
 rem --exec: sem shell no meio, para as barras invertidas dos caminhos chegarem intactas
-wsl -d Ubuntu --exec /home/theoh/miniforge3/envs/violet/bin/python /mnt/c/Users/TheoH/violino/violino.py %*
+wsl -d Ubuntu --exec /home/theoh/miniforge3/envs/violet/bin/python /mnt/c/Users/TheoH/violino/prototype/violino.py %*

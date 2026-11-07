@@ -1,7 +1,7 @@
-# Dependências baixadas (JUCE, ONNX Runtime, DirectML, VSCO 2 CE, CMake): ver tools/get_deps.ps1
+# Dependências baixadas (JUCE, ONNX Runtime, DirectML, VSCO 2 CE, CMake): ver tools/build/get_deps.ps1
 deps/
 
-# Modelos exportados (VIOLET em ONNX, ~1,7 GB): ver tools/export_onnx.py
+# Modelos exportados (VIOLET em ONNX, ~1,7 GB): ver tools/build/export_onnx.py
 onnx/
 *.onnx
 *.npz
@@ -9,7 +9,7 @@ onnx/
 # Build do plugin (CMake / Visual Studio)
 plugin/build/
 
-# Samples do preview já preparados (refeitos por tools/prepare_samples.py a partir do VSCO 2 CE)
+# Samples do preview já preparados (refeitos por tools/build/prepare_samples.py a partir do VSCO 2 CE)
 plugin/resources/samples/
 
 # Saídas de teste, áudio gerado, backups e downloads temporários
@@ -33,3 +33,6 @@ __pycache__/
 .vscode/
 Thumbs.db
 desktop.ini
+
+# Rascunhos locais
+tools/q.sh
