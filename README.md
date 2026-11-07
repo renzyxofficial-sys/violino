@@ -6,6 +6,9 @@ violin performance with the [VIOLET](https://github.com/User-tian/VIOLET) neural
 
 > Status: **alpha** (v0.22). Personal project, in active development.
 
+<img width="1680" height="1231" alt="Screenshot 2026-11-07 013324" src="https://github.com/user-attachments/assets/7f73950e-b25c-4884-b468-97bb673bcf0b" />
+
+
 ## How it works
 
 1. **Capture** — play the keyboard or press play in your DAW; notes are captured into takes on the timeline.
